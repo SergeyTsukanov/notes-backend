@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { Categories } from '../entities/note.entity';
+import { Categories } from '../models/note.model';
 
 export class UpdateNoteDto {
   @IsOptional()

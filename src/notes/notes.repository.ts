@@ -1,48 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { Note } from './entities/note.entity';
-import initialNotes from './constants/notes-data';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { parseDates } from './utils/parseDates';
+import { InjectModel } from '@nestjs/sequelize';
+import { Note } from './models/note.model';
 
 @Injectable()
 export class NotesRepository {
-  private data: Note[] = [...initialNotes];
-
-  create(createNoteDto: CreateNoteDto): Note {
-    const newNote = new Note(
-      createNoteDto.name,
-      createNoteDto.content,
-      createNoteDto.category,
-    );
-    this.data.push(newNote);
+  constructor(@InjectModel(Note) private noteModel: typeof Note) {}
+  async create(createNoteDto: CreateNoteDto): Promise<Note> {
+    const newNote = await this.noteModel.create({
+      ...createNoteDto,
+      dates: parseDates(createNoteDto.content),
+    });
     return newNote;
   }
 
-  findAll(): any[] {
-    return this.data;
+  async findAll(): Promise<Note[]> {
+    return this.noteModel.findAll();
   }
 
-  findById(id: string): Note {
-    return this.data.find((item) => item.id === id);
+  async findById(id: string): Promise<Note> {
+    return this.noteModel.findOne({ where: { id } });
   }
 
-  update(id: string, updateNoteDto: UpdateNoteDto): any {
-    this.data = this.data.map((note) => {
-      if (note.id === id) {
-        return {
-          ...note,
-          ...updateNoteDto,
-          dates: parseDates(updateNoteDto.content),
-        };
-      } else {
-        return note;
-      }
+  async update(id: string, updateNoteDto: UpdateNoteDto): Promise<Note> {
+    const noteToUpdate = await this.findById(id);
+    await noteToUpdate.update({
+      ...updateNoteDto,
+      dates: parseDates(updateNoteDto.content),
     });
-    return this.findById(id);
+    await noteToUpdate.save();
+    return noteToUpdate;
   }
 
-  delete(id: string): any {
-    this.data = this.data.filter((note) => note.id !== id);
+  async delete(id: string): Promise<void> {
+    await this.noteModel.destroy({ where: { id } });
   }
 }
