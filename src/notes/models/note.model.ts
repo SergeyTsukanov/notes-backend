@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, Default } from 'sequelize-typescript';
 
 export enum Categories {
   TASK = 'Task',
@@ -6,22 +6,25 @@ export enum Categories {
   RANDTHOUGHT = 'Random thought',
 }
 
-@Table
+@Table({ timestamps: false })
 export class Note extends Model {
-  @Column
+  @Column({ type: DataType.STRING })
   name: string;
 
-  @Column({ defaultValue: new Date() })
+  @Default(new Date())
+  @Column({ type: DataType.DATE })
   created: Date;
 
   @Column({ type: DataType.ENUM({ values: Object.keys(Categories) }) })
   category: Categories;
 
-  @Column
+  @Column({ type: DataType.TEXT })
   content: string;
-  @Column({ defaultValue: false })
+
+  @Default(false)
+  @Column({ type: DataType.BOOLEAN })
   isArchive: boolean;
 
-  @Column
+  @Column({ type: DataType.STRING })
   dates: string;
 }
